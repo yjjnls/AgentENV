@@ -365,7 +365,7 @@ fn bench_snapshot_creation_1gmem(c: &mut Criterion) {
     );
 }
 
-async fn prepare_snapshot() -> Result<std::sync::Arc<agentenv::snapshot::Snapshot>> {
+async fn prepare_snapshot() -> Result<std::sync::Arc<agentenv::snapshot::SnapshotHandle>> {
     let mut sandbox = setup_sandbox().await?;
     let snapshot = sandbox
         .capture_snapshot(
@@ -707,7 +707,7 @@ fn default_snapshot_resume(rt: &Runtime) -> Result<Vec<Duration>> {
 
 fn run_concurrent_resume_samples(
     rt: &Runtime,
-    base_snapshot: &Arc<agentenv::snapshot::Snapshot>,
+    base_snapshot: &Arc<agentenv::snapshot::SnapshotHandle>,
     sample_count: usize,
 ) -> Result<Vec<Duration>> {
     let start_barrier = Arc::new(Barrier::new(CONCURRENCY));
@@ -878,7 +878,7 @@ fn prepare_running_batch(rt: &Runtime, concurrency: usize) -> Result<Vec<Firecra
 fn capture_running_sandbox(
     handle: &Handle,
     sandbox: &mut FirecrackerSandbox,
-) -> Result<Arc<agentenv::snapshot::Snapshot>> {
+) -> Result<Arc<agentenv::snapshot::SnapshotHandle>> {
     Ok(handle.block_on(SandboxBackend::snapshot(
         sandbox,
         agentenv::snapshot::SnapshotId::generate(),
@@ -949,7 +949,7 @@ where
 
 fn run_resume_batch(
     rt: &Runtime,
-    snapshot: &Arc<agentenv::snapshot::Snapshot>,
+    snapshot: &Arc<agentenv::snapshot::SnapshotHandle>,
     concurrency: usize,
 ) -> Result<Duration> {
     let work = (0..concurrency)
@@ -997,7 +997,7 @@ fn run_resume_batch(
 
 fn start_resume_sandbox(
     handle: &Handle,
-    snapshot: &Arc<agentenv::snapshot::Snapshot>,
+    snapshot: &Arc<agentenv::snapshot::SnapshotHandle>,
 ) -> Result<(FirecrackerSandbox, thread::Result<Result<()>>)> {
     // Keep ownership outside the start call so failures and panics can be cleaned up.
     let mut sandbox = FirecrackerSandbox::from_snapshot_files(
@@ -1012,7 +1012,7 @@ fn start_resume_sandbox(
 
 fn resume_warm_sandbox(
     rt: &Runtime,
-    snapshot: &Arc<agentenv::snapshot::Snapshot>,
+    snapshot: &Arc<agentenv::snapshot::SnapshotHandle>,
 ) -> Result<FirecrackerSandbox> {
     let (sandbox, start) = start_resume_sandbox(rt.handle(), snapshot)?;
     match start {
